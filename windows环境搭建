@@ -1,0 +1,16 @@
+windows环境也是可以使用部分linux分布式框架的。
+https://chocolatey.org/install
+===========================================
+chocolatey安装win32平台的包管理，类似pip
+要求powershell版本大于>3.0
+查看版本的指令：$psversiontable
+技巧：
+运行Get-ExecutionPolicy。如果返回Restricted，则运行Set-ExecutionPolicy AllSigned或Set-ExecutionPolicy Bypass -Scope Process
+=============
+复制并执行命令
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+======
+测试是否安装成功
+choco -?
+==============================
+安装巧克力结束。。。。

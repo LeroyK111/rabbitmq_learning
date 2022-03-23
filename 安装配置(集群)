@@ -1,0 +1,95 @@
+========================================================================
+linux版本
+Debian、Ubuntu
+RHEL、CentOS、Fedora
+https://www.rabbitmq.com/download.html 直接复制运行shell脚本
+========================================================================
+windows版本
+win32安装chocolatey管理包
+choco install rabbitmq
+即可安装成功(需要挂vpn，erlang和rabbitmq)
+# windows要记得配置系统环境变量path，将rabbitmq加入。
+C:\Program Files\RabbitMQ Server\rabbitmq_server-3.9.13\sbin
+==========================================================================
+macos版本
+安装Homebrew包管理器
+# 开始安装
+brew install rabbitmq
+# 加入路径
+export PATH=$PATH:/usr/local/sbin
+================================================================================
+★推荐方式
+docker快速构建
+docker run -itd --hostname my-rabbit --name some-rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3.9-management
+==========================================================
+docker logs some-rabbit
+
+node = my-rabbit 是节点名称,
+
+database dir = 卷载位置
+
+=INFO REPORT==== 6-Jul-2015::20:47:02 ===
+node           : rabbit@my-rabbit
+home dir       : /var/lib/rabbitmq
+config file(s) : /etc/rabbitmq/rabbitmq.config
+cookie hash    : UoNOcDhfxW9uoZ92wh6BjA==
+log            : tty
+sasl log       : tty
+database dir   : /var/lib/rabbitmq/mnesia/rabbit@my-rabbit
+==================================================================
+rabbitmq.conf
+常用配置选项
+disk_free_limit.absolute = 2GB # 缓存配置大小
+
+
+
+
+
+
+
+
+
+
+
+
+
+设置默认用户和密码
+docker run -d --hostname my-rabbit --name some-rabbit -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password rabbitmq:3-management
+更改vhost主机
+docker run -d --hostname my-rabbit --name some-rabbit -e RABBITMQ_DEFAULT_VHOST=my_vhost rabbitmq:3-management
+
+cookie存放地址
+/var/lib/rabbitmq/.erlang.cookie
+https://www.rabbitmq.com/clustering.html#erlang-cookie
+
+
+配置文件存放地址
+/etc/rabbitmq/rabbitmq.conf
+https://www.rabbitmq.com/configure.html
+
+1.查找配置文件地址
+单机
+rabbitmq-diagnostics status
+集群找节点
+rabbitmq-diagnostics status -n [node name]
+
+ * /etc/rabbitmq/advanced.config 3.7版本之前的配置文件
+ * /etc/rabbitmq/rabbitmq.conf   3.8之后的配置文件
+
+监听的队列端口
+listeners.tcp.default = 5672
+
+linux配置环境变量
+vim /etc/profile
+RABBITMQ_CONFIG_FILE=/path/to/a/custom/location/rabbitmq.conf
+
+自动检查配置
+rabbitmq-diagnostics environment
+rabbitmq-diagnostics environment -n [node name]
+
+rabbitmq.conf文件的字段含义(涉及到docker容器的配置，cpu， 内存，硬盘等等)
+https://www.rabbitmq.com/configure.html#config-file
+
+
+docker使用手册
+https://docs.docker.com/desktop/

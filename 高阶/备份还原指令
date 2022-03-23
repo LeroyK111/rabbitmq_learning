@@ -1,0 +1,10 @@
+找到当前服务上的节点存储路径
+rabbitmqctl eval 'rabbit_mnesia:dir().'
+
+如果同时重命名集群中的多个节点，则该命令可以采用多个旧名称/新名称对。
+恢复节点存储
+rabbitmqctl rename_cluster_node <oldnode> <newnode>
+
+
+存放各种文件的位置
+https://www.rabbitmq.com/relocate.html

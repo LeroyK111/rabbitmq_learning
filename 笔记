@@ -1,0 +1,301 @@
+RabbitMQ
+分布式消息中间件（基于erlang开发）
+https://www.erlang.org/downloads web服务框架
+
+三方库pika文档
+https://pika.readthedocs.io/en/stable/index.html
+
+======================================
+win32安装chocolatey管理包
+choco install rabbitmq
+即可安装成功(需要挂vpn，erlang和rabbitmq)
+# windows要记得配置系统环境变量path，将rabbitmq加入。
+C:\Program Files\RabbitMQ Server\rabbitmq_server-3.9.13\sbin
+===============================================
+message Queue 消息队列
+FIFO先入先出，队列里存放的是消息message，还是一种跨进程的通信机制，用于传递上下游消息。
+MQ是一种非常常见的上下游“逻辑解耦+物理解耦”的消息通信服务。使用mq之后消息发送上游只需要以来MQ，不用依赖其他服务。
+============================================================================
+作用：
+1.流量削峰（延迟处理）
+人----->MQ排队------>订单系统
+
+2.应用解耦（提高系统可用性）
+                支付系统
+                 |
+                 |
+订单系统------->Queue队列------->库存系统
+                 |
+                 |
+                 物流系统
+
+
+3.异步处理（消息队列配任务队列，callback不好用）
+<------MQ<---------         
+|                |
+|                |
+A------>MQ------>B
+===============================================================================
+优点：erlang语言的高并发特性，性能较好。吞吐量万级，mq功能比较完备，健壮，稳定，易用，跨平台。
+支持多种语言：python c/c++
+支持ajax文档齐全
+开源提供的管理界面好用。
+缺点：
+商业版要收费
+=======================================================================
+消息中间件，负责接收，存储，转发。
+至于处理数据则是由任务队列进行，列如celery
+
+============================================
+生产者：发送消息的程序（前端JavaScript，后端django，任务队列celery，定时脚本等等）
+
+交换机：★重要组件，一方面接收来自生产者的消息，一方面将其推送到队列中。交换机必须确切知道如何处理它接收到的消息，
+是将消息推送到特定队列，还是推送到多个队列，亦或者是把消息丢弃，这个得有交换机类型决定。
+
+队列：
+（消息不可重复取用）
+queue，本质是一个大的消息缓冲区。生产者与队列，是多对多的方式。队列与消费者也可以是多对多的方式。
+
+消费者：
+从队列中取出消息的程序，可以是数据库，可以是前端，可以是后端，其他都行。
+========================================================================
+broker接收和分发消息的应用。||
+exchange交换             ||
+queue队列                ||
+========================
+Connection链接tcp      |
+channel信道            |
+======================
+信道极大的减少了tcp链接占用的系统资源。
+virtual host虚拟化分组
+banding     交换机和队列的绑定
+====================================================
+win32版本：
+rabbitmqctl.bat help
+rabbitmq-diagnostics.bat help
+rabbitmq-plugins.bat help
+
+win32指令
+rabbitmqctl.bat help add_user  询问添加用户的方法，help 【order】
+rabbitmqctl.bat status 查看服务状态
+rabbitmqctl.bat stop_app   停止服务
+rabbitmqctl.bat start_app 启动应用
+rabbitmqctl.bat reset       清除队列中的消息
+===================================================
+linux指令（redhat sbin目录下找到）
+/sbin/server rabbitmq-server start 启动
+/sbin/server rabbitmq-server status 查询状态
+/sbin/server rabbitmq-server stop   停止
+chkconfig rabbitmq-server on 设置开机自启
+rabbitmqctl help
+rabbitmqctl --help
+rabbitmq-diagnostics help
+rabbitmq-diagnostics help status
+
+
+
+集群专用命令
+rabbitmq-diagnostics status -n rabbit@remote-host.local 联系远程节点
+
+
+rabbitmqctl用于服务管理和一般操作员任务https://www.rabbitmq.com/rabbitmqctl.8.html
+rabbitmq-diagnostics用于诊断和健康检查https://www.rabbitmq.com/rabbitmq-diagnostics.8.html
+rabbitmq-plugins用于插件管理https://www.rabbitmq.com/rabbitmq-plugins.8.html
+rabbitmq-queues用于队列上的维护任务，特别是仲裁队列https://www.rabbitmq.com/rabbitmq-queues.8.html
+rabbitmq-upgrade用于与升级相关的维护任务https://www.rabbitmq.com/upgrade.html
+===========================================
+安装web可视化插件
+rabbitmq-plugins enable rabbitmq_management
+访问网址,账户guest密码guest
+http://localhost:15672/#/
+==================================================================================
+rabbitmqctl用于服务管理和一般操作员任务
+1.创建账户
+rabbitmqctl add_user admin 123
+
+2.设置用户角色
+rabbitmqctl set_user_tags admin administrator
+
+3.设置用户权限(/vhost对应交换机,不同的vhost对应的交换机和队列不用)  config read  write
+rabbitmqctl set_permissions -p "/vhost" admin ".*" ".*" ".*"
+
+4.列出所有用户
+rabbitmqctl list_users
+
+5.加入新交换机
+rabbitmqctl add_vhost  /test
+
+6.查看用户权限
+rabbitmqctl list_user_permissions test
+
+7.查看哪个用户拥有virtual host权限
+rabbitmqctl list_permissions -p /test
+
+8.清除权限
+rabbitmqctl clear_permissions -p  /test  test
+
+9.删除用户
+rabbitmqctl delete_user test
+
+10.删除virtual host
+rabbitmqctl delete_vhost /test
+
+11.查看所有队列
+rabbitmqctl list_queues
+
+12.删除队列
+rabbitmqctl  delete_queue  queue_name
+=========================================================================
+核心部分：
+【hello world】 一个消费者对应一个生产者
+https://www.rabbitmq.com/getstarted.html 教程
+python使用pika库，即可操作rabbitmq
+python -m pip install pika --upgrade
+=======================================================
+【work queue】工作队列
+1.在同一个队列中时，多个生产者，多个消费者，都是交替循环取用消息的。
+2.auto_ack=True在消费者开启自动消息确认，有一定可能会丢失消息，并且消息无法传递给下一个消费者。但是手动开启则可以避免消息丢失
+
+避免队列消息堆积，否则消耗大量内存
+rabbitmqctl list_queues name messages_ready messages_unacknowledged
+=========================================================================
+"""
+exchange
+名称：日志
+交换机类型: 
+direct    把消息投递到那些binding key与routing key完全匹配的队列中
+topic     将消息路由到binding key与routing key模式匹配的队列中
+headers   Headers 类型的Exchanges是不处理路由键的,而是根据发送的消息内容中的headers属性进行匹配
+fanout    广播到/test中的所有已知队列,发送端无需绑定队列
+"""
+【Publish_Subscribe发布订阅模式】
+使用fanout模式，发送队列无差别广播
+向多个消费者传递一个消息，日志广播消息。涉及到交换机类型
+
+列出我们所有知道的交换机，在这个列表中会有一些amq.*交换和默认（未命名）交换。这些是默认创建的，但目前您不太可能需要使用它们。
+rabbitmqctl list_exchanges
+
+可以输出消费者的日志
+python receive_logs.py > logs_from_rabbit.log
+查看绑定
+rabbitmqctl list_bindings
+==========================================================
+【Routing路由模式】
+使用交换机direct模式，发送定向广播,让队列按键值接收消息
+--------------
+                               |A
+            |队列q1---dict---->|B
+            |                  |C
+ex交换机1--->|队列q2---->路由模式说白了，就是传个字典给工人，然后分门别类取键值
+            |
+            |队列q3
+
+--------------
+输出路由键位日志
+python receive_logs_direct.py warning error > logs_from_rabbit.log
+===================================================
+【主题模式】Topics
+交换机起了一个筛选器的作用，可以按照key筛选不同消息，进不同的队列。
+routing_key=
+red.dog.flower 可以使用点连接多个key
+*              可以代替一个key
+#              可以代替0个or多个key
+---------------------------------------------
+筛选机制的两种情况：
+如果遇到无法匹配筛选的key时，则舍弃.
+"lazy.orange.male.rabbit"，即使它有四个单词，也会匹配最后一个绑定，并被传递到对应队列。
+
+当队列与“ # ”（散列）绑定键绑定时 - 无论路由键如何，它将接收所有消息 - 就像在扇出交换中一样。
+当绑定中不使用特殊字符“ * ”（星号）和“ # ”（哈希）时，主题交换的行为就像直接交换一样。
+"""
+这个是路由的进阶，路由是按照键匹配给队列。
+主题是按照筛选条件，匹配键给队列。
+"""
+
+=============================================================
+【手动发布确认模式】RPC，专为分布式消息中间件而生。。。。
+
+               差异
+rpc服务端：需要设置手动确认，并且在回调方法中调用ch.basic_publish(),将correlation_id传回到了客户端.
+消费者：   可以设置手动确认，但没有在callback中调用ch.basic_publish(),将correlation_id传回到了客户端.
+
+rpc客户端：重写了对象，并且调用了connection.process_data_events()来做客户端的接收
+生产者：无接收对象。
+
+★这里可以自己实现异步发送asyncio
+===============================================
+高级部分：
+
+【死信队列】
+
+
+【延迟队列】
+
+
+【发布确认高级】
+1.发布确认
+2.回退确认
+3.备份交换机
+
+
+【幂等性】
+
+
+
+【优先级队列】
+
+
+
+【惰性队列】
+
+=========================================================
+集群部分：
+【CLustering】
+
+【镜像mirror队列】
+
+
+【haproxy+Keepalive】实现高可用负载均衡
+
+
+
+【Federation Exchange】
+
+【Federation Queue】
+
+【Shovel】
+
+=================================
+RPM centos linux安装（给了shell脚本）
+https://www.rabbitmq.com/install-rpm.html#cloudsmith
+================
+debian ubuntu安装（给了shell脚本）
+https://www.rabbitmq.com/install-debian.html#apt-cloudsmith
+====================
+推荐使用docker进行配置消息中间中间件
+docker pull rabbitmq
+5672  队列协议端口
+15672 web管理端口
+docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq
+docker run -d --hostname my-rabbit --name some-rabbit -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password rabbitmq:3-management
+=====================================================
+端口类型
+4369: epmd,RabbitMQ节点和CLI工具使用的对等发现服务端口
+5672, 5671: queue队列端口
+25672: 用于节点间和CLI工具通信(Erlang分布服务器端口)，并从动态范围中分配(默认限制为单个端口，计算为AMQP端口+ 20000)。除非真的需要在这些端口上进行外部连接(例如集群使用federation或在子网外的机器上使用CLI工具)，否则这些端口不应该公开。具体组网请参见组网指南。
+35672-35682: 由CLI工具(Erlang分布客户端端口)用于与节点通信，并从动态范围(计算为服务器分布端口+ 10000通过服务器分布端口+ 10010)中分配。具体组网请参见组网指南。
+15672: 通过 http://serverip:15672 访问 RabbitMQ 的 Web 管理界面
+61613, 61614: STOMP客户端不支持和支持TLS(仅当启用STOMP插件时)
+1883, 8883: 如果启用了MQTT插件，MQTT客户端不使用TLS或使用TLS
+15674: STOMP-over- websockets客户端(仅当启用Web STOMP插件时)
+15675: MQTT-over- websockets客户端(仅当启用了Web MQTT插件时)
+
+================================================================
+软件版本升级https://www.rabbitmq.com/upgrade.html#single-node-upgrade
+单节点,停止服务，重新安装即可。
+集群升级，跨版本容易出现问题。
+根据升级中涉及的版本，RabbitMQ 集群 可能会使用称为滚动升级的过程提供执行升级的机会，而无需集群停机。滚动升级是指节点停止、升级和重新启动一个接一个，而集群的其余部分仍在运行，而每个节点都在升级。
+如果无法进行滚动升级，则应停止整个集群，然后重新启动。这称为完全停止升级。
+当每个节点停止时，客户端（应用程序）连接将被丢弃。应用程序需要准备好处理并重新连接。
+
+
