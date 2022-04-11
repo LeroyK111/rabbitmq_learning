@@ -278,6 +278,8 @@ docker pull rabbitmq
 15672 web管理端口
 docker run -it --rm --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq
 docker run -d --hostname my-rabbit --name some-rabbit -e RABBITMQ_DEFAULT_USER=user -e RABBITMQ_DEFAULT_PASS=password rabbitmq:3-management
+# 以下常用
+docker run -itd --restart=always --hostname rabbit-node-0 -p 5672:5672 -p 15672:15672 --name rabbitmq -e RABBITMQ_DEFAULT_VHOST=/test -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=123 rabbitmq
 =====================================================
 端口类型
 4369: epmd,RabbitMQ节点和CLI工具使用的对等发现服务端口

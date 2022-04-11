@@ -12,9 +12,9 @@ credentials = pika.PlainCredentials(username="admin", password="123")
 # 构造链接对象
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(
-        host="192.168.1.100",  # 交换机ip
+        host="127.0.0.1",  # 交换机ip
         port=5672,  # 队列端口
-        virtual_host="/test",  # 虚拟对象
+        virtual_host="/",  # 虚拟对象
         credentials=credentials,  # 导入密码
     ))
 # 信道也可以设置编号
